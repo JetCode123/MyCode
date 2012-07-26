@@ -1,0 +1,58 @@
+//
+//  AppListCell.m
+//  TimeLimitFree
+//
+//  Created by lujiaolong on 11-8-24.
+//  Copyright 2011 SequelMedia. All rights reserved.
+//
+
+#import "AppListCell.h"
+
+
+@implementation AppListCell
+
+@synthesize _app;
+@synthesize _orderIndex;
+@synthesize isDarkBackground;
+@synthesize _iconMaskImgView;
+
+
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+    
+    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    if (self) {
+        // Initialization code.
+
+		
+		self._iconMaskImgView = [[UIImageView alloc] init];
+		self._iconMaskImgView.frame = CGRectMake(5, 5, 66, 66);
+		[self addSubview:self._iconMaskImgView];
+		[self._iconMaskImgView release];
+		
+//		self._iconImgView = [[UIImageView alloc] init];
+//		self._iconImgView.frame = CGRectMake(5, 5, 66, 66);
+//		[self addSubview:self._iconImgView];
+//		[self._iconImgView release];
+	}
+    return self;
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    
+    [super setSelected:selected animated:animated];
+    
+    // Configure the view for the selected state.
+}
+
+
+- (void)dealloc {
+	self._app = nil;
+//	self._iconImgView = nil;
+	self._iconMaskImgView = nil;
+	
+	
+    [super dealloc];
+}
+
+
+@end

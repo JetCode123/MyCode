@@ -1,0 +1,31 @@
+//
+//  AppListCell.h
+//  TimeLimitFree
+//
+//  Created by lujiaolong on 11-8-24.
+//  Copyright 2011 SequelMedia. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "MApp.h"
+
+
+@interface AppListCell : UITableViewCell {
+	MApp *_app;
+	
+	NSInteger _orderIndex;
+	BOOL isDarkBackground;
+	
+	// TODO:更改标识　appIsNew的图片	
+	UIImageView *_iconMaskImgView;
+}
+
+@property (nonatomic,retain) MApp *_app;
+
+//@property (nonatomic,retain) UIImageView *_iconImgView;
+@property (nonatomic,retain) UIImageView *_iconMaskImgView;
+
+@property (nonatomic) NSInteger _orderIndex;
+@property (nonatomic) BOOL isDarkBackground;
+
+@end

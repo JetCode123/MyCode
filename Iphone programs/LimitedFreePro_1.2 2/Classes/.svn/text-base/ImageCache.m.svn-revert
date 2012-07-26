@@ -1,0 +1,95 @@
+//
+//  ImageCache.m
+//  TimeLimitFree
+//
+//  Created by lujiaolong on 11-8-24.
+//  Copyright 2011 SequelMedia. All rights reserved.
+//
+
+#import "ImageCache.h"
+
+@implementation ImageCache
+
++(BOOL)saveToCacheWithID:(NSString *)identity andImg:(UIImage *)image andDir:(NSInteger)dir{
+	NSString *_docDir = [ImageCache parseDir:dir];
+	[[NSFileManager defaultManager] createDirectoryAtPath:_docDir attributes:nil];
+	
+	NSString *_filePath = [NSString stringWithFormat:@"%@/%@",_docDir,identity];
+
+	NSData *_imgData = [NSData dataWithData:UIImageJPEGRepresentation(image, 1.0f)];
+	return [_imgData writeToFile:_filePath atomically:YES];
+}
+
++(UIImage *)loadFromCacheWithID:(NSString *)identity andDir:(NSInteger)dir{
+		
+	NSString *_imgPath = [self getPersistencePathWithID:identity andDir:dir];
+	if([[NSFileManager defaultManager] fileExistsAtPath:_imgPath]){
+		return [UIImage imageWithContentsOfFile:_imgPath];
+	}
+	else{
+		return nil;
+	}
+}
+
+// 获取文件夹中的文件
++(NSString *)getPersistencePathWithID:(NSString *)identity andDir:(NSInteger)dir{
+	NSString *_docDir = [ImageCache parseDir:dir];
+	NSString *_filePath = [NSString stringWithFormat:@"%@/%@",_docDir,identity];
+	return _filePath;
+}
+
+// 缓存一周的时间。。
++(void)checkCache{
+	NSArray *_dirs = [NSArray arrayWithObjects:DIRSTR_LIST,DIRSTR_DETAIL,nil];
+	for(NSString *_aDir in _dirs){
+		NSString *_docDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+		_docDir = [_docDir stringByAppendingString:_aDir];
+		
+		NSFileManager *_fm = [NSFileManager defaultManager];
+		// 返回 文件夹中的 文件数
+		NSArray *_files = [_fm contentsOfDirectoryAtPath:_docDir error:NULL];
+		
+		
+		if([_files count] > 300){
+			[_fm removeItemAtPath:_docDir error:NULL];
+			return;
+		}
+		
+		for(NSString *_fileName in _files){
+			NSString *_path = [NSString stringWithFormat:@"%@/%@",_docDir,_fileName];
+			NSDate *_mDate = [[_fm attributesOfItemAtPath:_path error:NULL] fileModificationDate];
+			if(_mDate != nil){
+				if([_mDate timeIntervalSinceNow] < -(7 * 24 * 3600))
+					[_fm removeItemAtPath:_path error:NULL];
+			}
+		}
+	}
+}
+
++(BOOL)haveImageWithPath:(NSString *)path andDir:(NSInteger)dir{
+	NSString *_docDir = [ImageCache parseDir:dir];
+	path = [NSString stringWithFormat:@"%@/%@",_docDir,path];
+	return [[NSFileManager defaultManager] fileExistsAtPath:path];
+}
+
+// 根据不同的int值返回不同的 文档路径
++(NSString *)parseDir:(NSInteger)dir{
+	
+	NSString *_docDir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+	
+	switch(dir){
+		case DIR_LIST:
+			_docDir = [_docDir stringByAppendingString:DIRSTR_LIST];
+			break;
+		case DIR_DETAIL:
+			_docDir = [_docDir stringByAppendingString:DIRSTR_DETAIL];
+			break;
+
+		default:
+			break;
+	}
+	
+	return _docDir;
+}
+
+@end

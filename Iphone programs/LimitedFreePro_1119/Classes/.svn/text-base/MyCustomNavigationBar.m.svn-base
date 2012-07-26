@@ -1,0 +1,51 @@
+//
+//  MyCustomNavigationBar.m
+//  xianshimianfeizhuanyeban
+//
+//  Created by lujiaolong on 11-10-11.
+//  Copyright 2011 SequelMedia. All rights reserved.
+//
+
+#import "MyCustomNavigationBar.h"
+
+
+@implementation MyCustomNavigationBar
+@synthesize navigationBarBackImageView;
+
+
+- (void)drawRect:(CGRect)rect{
+	UIImage *image = [UIImage imageNamed:@"top_beijing.png"];
+	[image drawInRect:rect];
+}
+
+-(void)setBackgroundWith:(UIImage *)backgroundImage{
+	for(UIView *_v in self.subviews){
+		if(_v && _v.tag == 1)
+			[_v removeFromSuperview];
+	}
+	
+	if(backgroundImage){
+		self.navigationBarBackImageView = [[UIImageView alloc] initWithImage:backgroundImage];
+		self.navigationBarBackImageView.frame = self.frame;
+		self.navigationBarBackImageView.tag = 1;
+		self.navigationBarBackImageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+		[self addSubview:self.navigationBarBackImageView];
+		[self insertSubview:self.navigationBarBackImageView atIndex:0];
+		[self.navigationBarBackImageView release];
+	}
+	
+	else 
+		[self.navigationBarBackImageView removeFromSuperview];
+}
+
+- (void)insertSubview:(UIView *)view atIndex:(NSInteger)index{
+	[super insertSubview:view atIndex:0];
+	[self sendSubviewToBack:self.navigationBarBackImageView];
+}
+- (void)dealloc {
+	[navigationBarBackImageView release];
+    [super dealloc];
+}
+
+
+@end

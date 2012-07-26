@@ -1,0 +1,21 @@
+//
+//  MyCustomNavigationBar.h
+//  xianshimianfeizhuanyeban
+//
+//  Created by lujiaolong on 11-10-11.
+//  Copyright 2011 SequelMedia. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+@interface MyCustomNavigationBar : UINavigationBar {
+	UIImageView *navigationBarBackImageView;
+}
+
+@property (nonatomic,retain) UIImageView *navigationBarBackImageView;
+
+-(void)setBackgroundWith:(UIImage *)backgroundImage;
+- (void)insertSubview:(UIView *)view atIndex:(NSInteger)index;
+
+@end
+
+

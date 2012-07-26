@@ -1,0 +1,270 @@
+//
+//  VFirstPageLogo.m
+//  限时免费_me
+//
+//  Created by lujiaolong on 11-9-13.
+//  Copyright 2011 SequelMedia. All rights reserved.
+//			
+
+#import "VFirstPageLogo.h"
+#import "ImageCache.h"
+#import "ImageManipulator.h"
+#import "UIImageExtend.h"
+#import "AppListViewController.h"
+#import <QuartzCore/QuartzCore.h>
+#import "AppDetailsViewController.h"
+#import	"MobClick.h"
+
+
+#define kWifiCornerValue 30
+#define k3gCornerValue 15
+
+#define kAnimationDuration 0.06
+#define kAnimationRepeatCount 5
+#define kHaveTouchedView @"boolForTouchKey"
+
+@interface VFirstPageLogo(private)
+-(void)shakeAnimation;
+-(void)shakeAnimation1;
+-(void)enabledTouch;
+@end
+
+@implementation VFirstPageLogo
+@synthesize _redirectBtn,_mad,_activityView,_appListVC;
+@synthesize _networkType;
+@synthesize xiushiImgView,nameLabel;
+
+
+- (id)initWithFrame:(CGRect)frame {
+    
+    self = [super initWithFrame:frame];
+    if (self) {
+        // Initialization code.
+		self.userInteractionEnabled = YES;
+
+		UIImageView *backImgView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"mask_dark.png"]];
+		backImgView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+		[self addSubview:backImgView];
+		[backImgView release];
+		
+		self._redirectBtn = [[[UIButton alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)] autorelease];
+		self._redirectBtn.backgroundColor= [UIColor clearColor];
+		self._redirectBtn.userInteractionEnabled = NO;
+//		[self._redirectBtn addTarget:self action:@selector(shakeAnimation) forControlEvents:UIControlEventTouchUpInside];
+		[self addSubview:self._redirectBtn];
+		
+		
+		self._activityView = [[[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray] autorelease];
+		self._activityView.center = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
+		[self._activityView startAnimating];
+		[self addSubview:self._activityView];
+		
+		self.backgroundColor = [UIColor clearColor];
+    }
+    return self;
+}
+
+-(void)shakeAnimation{
+	[UIView beginAnimations:@"shakeTheButton" context:nil];
+	[UIView setAnimationDuration:kAnimationDuration];
+	[UIView setAnimationRepeatCount:kAnimationRepeatCount];
+	[UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+
+	[UIView setAnimationDelegate:self];
+	[UIView setAnimationDidStopSelector:@selector(centerBack)];
+	[UIView setAnimationRepeatAutoreverses:YES];
+	
+	CGPoint shakeCenter = self.center;
+	shakeCenter.x += 2.0;
+	self.center = shakeCenter;
+	
+	self.transform = CGAffineTransformMakeRotation(- M_PI / 36);
+	
+	[UIView commitAnimations];
+}
+
+-(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
+	if([[NSUserDefaults standardUserDefaults] objectForKey:kHaveTouchedView] == nil 
+	   || [[[NSUserDefaults standardUserDefaults] objectForKey:kHaveTouchedView] intValue] == 0){
+		[self shakeAnimation];
+		[self shakeAnimation1];
+		[[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:1] forKey:kHaveTouchedView];
+	}
+}
+
+-(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event{
+	if([[[NSUserDefaults standardUserDefaults] objectForKey:kHaveTouchedView] intValue] == 1)
+		[self performSelector:@selector(enabledTouch) withObject:nil afterDelay:(kAnimationDuration * kAnimationRepeatCount + 0.5)];
+}
+
+-(void)enabledTouch{
+	[[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:0] forKey:kHaveTouchedView];
+	
+	if([self._appListVC.navigationController.viewControllers count] == 1){
+		AppDetailsViewController *detailsVC = [[AppDetailsViewController alloc] init];
+		detailsVC._app = self._mad;
+		[self._appListVC.navigationController pushViewController:detailsVC animated:YES];
+		[detailsVC release];
+		
+		[MobClick event:@"头部推荐3个位置" label:[NSString stringWithFormat:@"排名第%i",self.tag / 100]];
+//		[MobClick event:@"头部推荐6个位置"];
+	}
+}
+
+-(void)centerBack{
+	[UIView beginAnimations:@"huiwei" context:nil];
+	[UIView setAnimationDuration:0.1];
+	[UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
+
+	CGPoint nowPt = self.center;
+	nowPt.x -= 2.0;
+	self.center = nowPt;
+	
+	self.transform = CGAffineTransformIdentity;
+	[UIView commitAnimations];
+}
+
+-(void)shakeAnimation1{
+	[UIView beginAnimations:@"shakeTheBtn" context:nil];
+	[UIView setAnimationDuration:kAnimationDuration];
+	[UIView setAnimationRepeatCount:kAnimationRepeatCount];
+	[UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+	
+	[UIView setAnimationDelegate:self];
+	[UIView setAnimationDidStopSelector:@selector(centerBack1)];
+	[UIView setAnimationRepeatAutoreverses:YES];
+	
+	self.transform = CGAffineTransformMakeRotation(M_PI / 36);
+	[UIView commitAnimations];
+}
+
+-(void)centerBack1{
+	[UIView beginAnimations:@"huiwei" context:nil];
+	[UIView setAnimationDuration:0.1];
+	[UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
+	
+	self.transform = CGAffineTransformIdentity;
+	[UIView commitAnimations];
+}
+
+UIImage *tempImg;
+
+-(void)bindItem{
+	if(self._mad != nil){
+		
+        /*
+		if([self._networkType isEqualToString:@"3g"]){
+			tempImg = [ImageCache loadFromCacheWithID:self._mad._appLogoPath andDir:DIR_LIST];
+			if(tempImg == nil){
+				NSInvocationOperation *opt = [[[NSInvocationOperation alloc] initWithTarget:self selector:@selector(loadImage) object:nil] autorelease];
+				[self._appListVC.loadImageQueue addOperation:opt];
+			}
+			else{
+				[self performSelectorOnMainThread:@selector(setImageView:) withObject:[ImageManipulator makeRoundCornerImage:tempImg :k3gCornerValue :k3gCornerValue] waitUntilDone:YES];
+			}
+		}
+		
+		else if([self._networkType isEqualToString:@"Wifi"]){
+			tempImg = [ImageCache loadFromCacheWithID:self._mad._appWifiLogoPath andDir:DIR_LIST];
+			if(tempImg == nil){
+				NSInvocationOperation *opt = [[[NSInvocationOperation alloc] initWithTarget:self selector:@selector(loadImage) object:nil] autorelease];
+				[self._appListVC.loadImageQueue addOperation:opt];
+			}
+			else{
+				[self performSelectorOnMainThread:@selector(setImageView:) withObject:[ImageManipulator makeRoundCornerImage:tempImg :kWifiCornerValue :kWifiCornerValue] waitUntilDone:YES];
+			}
+		}
+         */
+        
+        tempImg = [ImageCache loadFromCacheWithID:self._mad._appWifiLogoPath andDir:DIR_LIST];
+        if(tempImg == nil){
+            NSInvocationOperation *opt = [[[NSInvocationOperation alloc] initWithTarget:self selector:@selector(loadImage) object:nil] autorelease];
+            [self._appListVC.loadImageQueue addOperation:opt];
+        }
+        else{
+            [self performSelectorOnMainThread:@selector(setImageView:) withObject:[ImageManipulator makeRoundCornerImage:tempImg :kWifiCornerValue :kWifiCornerValue] waitUntilDone:YES];
+        }
+	}
+}
+
+-(void)setImageView:(UIImage *)img{
+	[self._redirectBtn setBackgroundImage:[img imageWithShadow] forState:UIControlStateNormal];
+
+	[img release];
+
+	[self._activityView removeFromSuperview];
+	self._activityView = nil;
+	
+	UIImageView *new = (UIImageView *)[self viewWithTag:1];
+	
+	if(new){
+		[new removeFromSuperview];
+		new = nil;
+	}
+	
+	self.backgroundColor = [UIColor clearColor];
+	NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
+	[dateFormatter setDateFormat:@"yyyy-MM-dd"];
+	NSString *todayStr = [dateFormatter stringFromDate:[NSDate date]];
+	
+	if([self._mad._appUpdateDateAll isEqualToString:todayStr]){
+		UIImageView *isNewImg = [[UIImageView alloc] initWithFrame:CGRectMake(-1, -1, 30, 29)];
+		isNewImg.tag = 1;
+		isNewImg.image = [UIImage imageNamed:@"appIsNew.png"];
+		[self addSubview:isNewImg];
+		[isNewImg release];
+	}
+		
+	self.nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width + 18, 26)];
+//	self.nameLabel.center = CGPointMake(self.frame.size.width / 2, self.frame.size.height - 26 / 2 + 5);
+	self.nameLabel.center = CGPointMake(self.frame.size.width / 2, self.frame.size.height + self.nameLabel.frame.size.height / 2 - 5);
+	self.nameLabel.font = [UIFont boldSystemFontOfSize:10.f];
+	self.nameLabel.backgroundColor = [UIColor clearColor];
+	self.nameLabel.textAlignment = UITextAlignmentCenter;
+	self.nameLabel.textColor = [UIColor blackColor];
+	
+	self.nameLabel.shadowColor = [UIColor colorWithWhite:1 alpha:0.7];
+	self.nameLabel.shadowOffset = CGSizeMake(0.5, 0.5);
+	
+	self.nameLabel.adjustsFontSizeToFitWidth = NO;
+	self.nameLabel.text = self._mad._appName;
+	
+	[self addSubview:self.nameLabel];
+	[self.nameLabel release];
+}
+
+-(void)loadImage{
+    /*
+	if([self._networkType isEqualToString:@"3g"]){
+		tempImg = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:self._mad._appLogo]]];
+		tempImg = [ImageManipulator makeRoundCornerImage:tempImg :k3gCornerValue :k3gCornerValue];
+		[ImageCache saveToCacheWithID:[self._mad._appLogo lastPathComponent] andImg:tempImg andDir:DIR_LIST];
+	}
+	else if([self._networkType isEqualToString:@"Wifi"]){
+		tempImg = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:self._mad._appWifiLogo]]];
+		tempImg = [ImageManipulator makeRoundCornerImage:tempImg :kWifiCornerValue :kWifiCornerValue];
+		[ImageCache saveToCacheWithID:self._mad._appWifiLogoPath andImg:tempImg andDir:DIR_LIST];
+	}*/
+    
+    tempImg = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:self._mad._appWifiLogo]]];
+    tempImg = [ImageManipulator makeRoundCornerImage:tempImg :kWifiCornerValue :kWifiCornerValue];
+    [ImageCache saveToCacheWithID:self._mad._appWifiLogoPath andImg:tempImg andDir:DIR_LIST];
+    
+	[self performSelectorOnMainThread:@selector(setImageView:) withObject:tempImg waitUntilDone:YES];
+}
+
+
+- (void)dealloc {
+	self._redirectBtn = nil;
+	self._mad = nil;
+	self._activityView = nil;
+	self._networkType = nil;
+	
+	[self.xiushiImgView release];
+
+	self.nameLabel = nil;
+    [super dealloc];
+}
+
+
+@end

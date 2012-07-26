@@ -1,0 +1,290 @@
+//
+//  RootViewController.m
+//  TimeLimitFree
+//
+//  Created by lujiaolong on 11-8-23.
+//  Copyright 2011 SequelMedia. All rights reserved.
+//
+
+#import "RootViewController.h"
+#import "CategoryViewController.h"
+#import "OrderView.h"
+#import "Contants.h"
+
+
+#define IF [[self._conListDict valueForKey:KEY_ORDER] isEqualToString:@"New"] && [[self._conListDict valueForKey:KEY_CATEGORYID] intValue] == 24 
+
+@interface RootViewController()
+-(void)paixu_Action;
+-(void)fenlei_Action;
+-(void)scrollToTop;
+@end
+
+@implementation RootViewController
+
+#pragma mark -
+#pragma mark View lifecycle
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+	
+	
+	UIButton *titleBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+	[titleBtn setFrame:CGRectMake(0, 0, 200, 44)];
+	titleBtn.center = CGPointMake(160, 22);
+	titleBtn.titleLabel.font = [UIFont boldSystemFontOfSize:21];
+	titleBtn.titleLabel.textAlignment = UITextAlignmentCenter;
+	titleBtn.titleLabel.textColor = [UIColor whiteColor];
+	titleBtn.titleLabel.shadowColor = [UIColor blackColor];
+	titleBtn.titleLabel.shadowOffset = CGSizeMake(1, 1);
+	[titleBtn setTitle:@"限时免费" forState:UIControlStateNormal];
+	[titleBtn addTarget:self action:@selector(scrollToTop) forControlEvents:UIControlEventTouchUpInside];
+	
+	self.navigationItem.titleView = titleBtn;
+// TODO:
+	
+	self._ov._rootVC = self;
+	
+	[self clickReload];
+}
+
+-(void)scrollToTop{
+	if(!self.tableView.decelerating)
+		self.tableView.contentOffset = CGPointMake(0, 0);
+}
+
+-(void)paixu_Action{
+	CGRect frame = self._ov.frame;
+	
+	if(isOrderViewOn){
+		isOrderViewOn = !isOrderViewOn;
+		[UIView beginAnimations:@"close" context:nil];
+		[UIView setAnimationDuration:0.3];
+		[UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+		
+		frame.origin.x += 90;
+		[self._ov setFrame:frame];
+		
+		[UIView commitAnimations];
+	}
+	
+	else{
+		isOrderViewOn = !isOrderViewOn;
+		
+		[UIView beginAnimations:@"open" context:nil];
+		[UIView setAnimationDuration:0.3];
+		[UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+		
+		frame.origin.x -= 90;
+		[self._ov setFrame:frame];
+		
+		[UIView commitAnimations];
+	}
+}
+
+CGRect viewFrame;
+-(void)expandOut{
+	viewFrame = self._ov.frame;
+	
+	if(isOrderViewOn)
+		return;
+	
+	[UIView beginAnimations:nil context:nil];
+	[UIView setAnimationDuration:0.3];
+	
+	viewFrame.origin.x -= 90;
+	[self._ov setFrame:viewFrame];
+	[UIView commitAnimations];
+	
+	isOrderViewOn = !isOrderViewOn;
+}
+
+-(void)drawBack{
+	viewFrame = self._ov.frame;
+	if(!isOrderViewOn)
+		return;
+	
+	[UIView beginAnimations:nil context:nil];
+	[UIView setAnimationDuration:0.3];
+	
+	viewFrame.origin.x += 90;
+	[self._ov setFrame:viewFrame];
+	[UIView commitAnimations];
+	
+	isOrderViewOn = !isOrderViewOn;
+}
+
+-(void)fenlei_Action{
+	// 1.hidden the order view.
+	CGRect frame = self._ov.frame;
+	if(isOrderViewOn){
+		isOrderViewOn = !isOrderViewOn;
+		[UIView beginAnimations:@"close" context:nil];
+		[UIView setAnimationDuration:0.4];
+		[UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+		
+		frame.origin.x += 90;
+		[(OrderView *)self._ov setFrame:frame];
+		
+		[UIView commitAnimations];
+		
+		[self performSelector:@selector(pushAction) withObject:nil afterDelay:0.4];
+	}
+	
+	// 2. push action.
+	else 
+		[self pushAction];
+}
+
+-(void)pushAction{
+	CategoryViewController *_cateVC = [[CategoryViewController alloc] init];
+	[self.navigationController pushViewController:_cateVC animated:YES];
+	
+
+	[_cateVC release];
+}
+
+-(NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+	if(isOrderViewOn){
+		return nil;
+	}
+	else{
+		if(indexPath.section == 1)
+			return indexPath;
+		else 
+			return nil;
+	}
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{                        // called on start of dragging (may require some time and or distance to move)
+  CGRect frame = self._ov.frame;
+	if(isOrderViewOn){
+		isOrderViewOn = !isOrderViewOn;
+		[UIView beginAnimations:@"close" context:nil];
+		[UIView setAnimationDuration:0.3];
+		[UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+		
+		frame.origin.x += 90;
+		[self._ov setFrame:frame];
+		
+		[UIView commitAnimations];
+	}
+}
+
+//
+//-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+//	CGRect frame = _ov.frame;
+//	if(isOrderViewOn){
+//		isOrderViewOn = !isOrderViewOn;
+//		[UIView beginAnimations:@"close" context:nil];
+//		[UIView setAnimationDuration:0.4];
+//		[UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+//		
+//		frame.origin.x += 90;
+//		[_ov setFrame:frame];
+//		
+//		[UIView commitAnimations];
+//		
+//	}
+//}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+
+}
+
+
+- (void)viewWillDisappear:(BOOL)animated {
+	[super viewWillDisappear:animated];
+	
+}
+
+
+- (void)viewDidDisappear:(BOOL)animated {
+	[super viewDidDisappear:animated];
+
+}
+
+
+/*
+ // Override to allow orientations other than the default portrait orientation.
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+	// Return YES for supported orientations.
+	return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+ */
+
+
+#pragma mark -
+#pragma mark Table view data source
+
+
+
+/*
+// Override to support conditional editing of the table view.
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    // Return NO if you do not want the specified item to be editable.
+    return YES;
+}
+*/
+
+
+/*
+// Override to support editing the table view.
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        // Delete the row from the data source.
+        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+    }   
+    else if (editingStyle == UITableViewCellEditingStyleInsert) {
+        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
+    }   
+}
+*/
+
+
+/*
+// Override to support rearranging the table view.
+- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
+}
+*/
+
+
+/*
+// Override to support conditional rearranging of the table view.
+- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
+    // Return NO if you do not want the item to be re-orderable.
+    return YES;
+}
+*/
+
+
+#pragma mark -
+#pragma mark Table view delegate
+
+
+
+#pragma mark -
+#pragma mark Memory management
+
+- (void)didReceiveMemoryWarning {
+    // Releases the view if it doesn't have a superview.
+    [super didReceiveMemoryWarning];
+    
+    // Relinquish ownership any cached data, images, etc that aren't in use.
+}
+
+- (void)viewDidUnload {
+    // Relinquish ownership of anything that can be recreated in viewDidLoad or on demand.
+    // For example: self.myOutlet = nil;
+}
+
+
+- (void)dealloc {
+    [super dealloc];
+}
+
+
+@end
+
